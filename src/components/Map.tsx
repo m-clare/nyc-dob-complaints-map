@@ -19,6 +19,8 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import Link from "@mui/material/Link";
+import GitHubIcon from "@mui/icons-material/GitHub";
 
 const descriptionMap2021 = new Map(
   dobComplaints2021.map((d) => [
@@ -106,21 +108,19 @@ const LayersVisibilityController = (props: {
     onChange(newLayersVisibility);
   };
 
-  const toggleAllLayers = () => {};
-
   return (
     <Box
       sx={{
         position: "fixed",
-        right: 24,
-        top: 24,
+        right: 8,
+        bottom: 108,
       }}
     >
-      <Paper sx={{ paddingY: 2, paddingLeft: 2 }}>
+      <Paper sx={{ paddingY: 2, paddingLeft: 2, opacity: 0.8 }}>
         <Typography variant="h7" sx={{ fontVariant: "small-caps" }}>
           Layers
         </Typography>
-        <Box sx={{ maxHeight: "30vh", overflowY: "auto", maxWidth: "300px" }}>
+        <Box sx={{ maxHeight: "20vh", overflowY: "auto", maxWidth: "300px" }}>
           <List>
             {props.layers.map(({ id, visible }) => {
               const complaintId = id.split("-")[1];
@@ -248,8 +248,6 @@ function MaplibreMap() {
           )[0] ?? null;
         if (feature) {
           const point = feature.geometry as Point;
-          const coords = point.coordinates as [number, number];
-          const id = feature.properties.id;
           setSelectedMarkerData(feature.properties);
           setHudVisible(true);
         } else {
@@ -287,6 +285,17 @@ function MaplibreMap() {
         layers={layersVisibility}
         onChange={handleLayersVisibilityChange}
       />
+      <Box sx={{ position: "fixed", left: 8, bottom: 72 }}>
+        <Link href="https://github.com/m-clare/nyc-dob-complaints-map">
+          <GitHubIcon
+            sx={{
+              color: "white",
+              display: "inline-block",
+              verticalAlign: "middle",
+            }}
+          />
+        </Link>
+      </Box>
       {hudVisible && <HUD rawData={selectedMarkerData} />}
     </>
   );
