@@ -356,18 +356,21 @@ function MaplibreMap() {
         <div ref={mapContainerRef}></div>
       </div>
       <Box sx={{ position: "fixed", left: 24, top: 24 }}>
-        <Typography
-          variant="h4"
-          sx={{ color: "black", fontVariant: "small-caps" }}
-        >
-          NYC Department of Buildings
-        </Typography>
-        <Typography
-          variant="h5"
-          sx={{ color: "black", fontVariant: "small-caps" }}
-        >
-          Active Complaints
-        </Typography>
+        <Box sx={{ paddingLeft: 3, paddingBottom: 1 }}>
+          <Typography
+            variant="h4"
+            sx={{ color: "black", fontVariant: "small-caps" }}
+          >
+            NYC Department of Buildings
+          </Typography>
+          <Typography
+            variant="h5"
+            sx={{ color: "black", fontVariant: "small-caps" }}
+          >
+            Active Complaints
+          </Typography>
+        </Box>
+        {hudVisible && <HUD rawData={selectedMarkerData} />}
       </Box>
       <LayersVisibilityController
         layers={layersVisibility}
@@ -384,7 +387,6 @@ function MaplibreMap() {
           />
         </Link>
       </Box>
-      {hudVisible && <HUD rawData={selectedMarkerData} />}
     </>
   );
 }

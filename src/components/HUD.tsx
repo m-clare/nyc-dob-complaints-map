@@ -117,8 +117,7 @@ const HUD = ({ rawData }) => {
     <Container>
       <Box
         sx={{
-          position: "absolute",
-          top: 106,
+          position: "relative",
         }}
       >
         <Paper
