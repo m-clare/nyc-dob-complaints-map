@@ -355,7 +355,7 @@ function MaplibreMap() {
       <div ref={mapContainerRef} className={styles.mapContainer}>
         <div ref={mapContainerRef}></div>
       </div>
-      <Box sx={{ position: "fixed", left: 8, top: 8 }}>
+      <Box sx={{ position: "fixed", left: 24, top: 24 }}>
         <Typography
           variant="h4"
           sx={{ color: "black", fontVariant: "small-caps" }}

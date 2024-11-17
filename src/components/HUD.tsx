@@ -114,13 +114,11 @@ const HUD = ({ rawData }) => {
     );
   };
   return (
-    <Container maxWidth="lg">
+    <Container>
       <Box
         sx={{
           position: "absolute",
-          marginLeft: 3,
-          marginRight: 3,
-          top: 80,
+          top: 106,
         }}
       >
         <Paper
