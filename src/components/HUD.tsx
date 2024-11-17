@@ -41,7 +41,7 @@ const HUD = ({ rawData }) => {
           const formattedKey = key.split("_").join(" ");
           if (desiredFields.has(key) && key === "complaint_category") {
             return (
-              <div key={i}>
+              <div key={key}>
                 <div>
                   <Typography
                     key={`${key}_${i}`}
@@ -87,7 +87,7 @@ const HUD = ({ rawData }) => {
             );
           } else {
             return (
-              <div key={i}>
+              <div key={key}>
                 <div>
                   <Typography
                     key={`${key}_${i}`}
@@ -176,12 +176,12 @@ const HUD = ({ rawData }) => {
           >
             {data.map((item: object, i: number) => {
               return (
-                <>
+                <div key={i}>
                   {formattedEntry(item)}
                   {!(i === data.length - 1) && (
                     <Divider sx={{ mx: 0.5, my: 1 }} />
                   )}
-                </>
+                </div>
               );
             })}
           </Box>

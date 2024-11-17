@@ -71,7 +71,7 @@ const getDefaultLayer = (layerId: string) => {
     id: `${layerId}`,
     type: "circle",
     source: "dobTiles",
-    "source-layer": "20241116_nycdob_rollup",
+    "source-layer": import.meta.env.VITE_LAYER_ID,
     layout: { visibility: "visible" },
     paint: {
       "circle-color": circleColors,
@@ -88,7 +88,7 @@ const getComplaintLayer = (layerId: string) => {
     id: `${layerId}`,
     type: "circle",
     source: "dobTiles",
-    "source-layer": "20241116_nycdob_rollup",
+    "source-layer": import.meta.env.VITE_LAYER_ID,
     filter: [
       "all",
       [
@@ -204,7 +204,9 @@ function MaplibreMap() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapFile = new PMTiles("/nyc-building-complaints/new-york.pmtiles");
-  const dobFile = new PMTiles("/nyc-building-complaints/nyc-buildings.pmtiles");
+  const dobFile = new PMTiles(
+    `/nyc-building-complaints/${import.meta.env.VITE_TILESET}`
+  );
 
   const handleSpaceZoom = (event) => {
     if (event.key === " ") {
