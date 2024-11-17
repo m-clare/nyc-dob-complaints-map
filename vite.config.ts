@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     outDir: "dist",
   },
-  base: "/nyc-public-complaints/",
+  base: "/nyc-building-complaints/",
   publicDir: "public",
   experimental: {
     renderBuiltUrl(

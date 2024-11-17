@@ -6,13 +6,15 @@ import Divider from "@mui/material/Divider";
 import complaintCategory from "../assets/dobcomplaints_complaint_category.json";
 import complaintCategory2021 from "../assets/complaint_category.json";
 
-
 const descriptionMap = new Map(
   complaintCategory.map((d) => [d.CODE, d["COMPLAINT CATEGORY DESCRIPTION"]])
 );
 
 const descriptionMap2021 = new Map(
-  complaintCategory2021.map((d) => [d["COMPLAINT CATEGORY"], d["COMPLAINT CATEGORY DESCRIPTION"]])
+  complaintCategory2021.map((d) => [
+    d["COMPLAINT CATEGORY"],
+    d["COMPLAINT CATEGORY DESCRIPTION"],
+  ])
 );
 
 const priorityMap = new Map(complaintCategory.map((d) => [d.CODE, d.PRIORITY]));
@@ -39,7 +41,7 @@ const HUD = ({ rawData }) => {
           const formattedKey = key.split("_").join(" ");
           if (desiredFields.has(key) && key === "complaint_category") {
             return (
-              <>
+              <div key={i}>
                 <div>
                   <Typography
                     key={`${key}_${i}`}
@@ -55,7 +57,11 @@ const HUD = ({ rawData }) => {
                     display="inline"
                     variant="body2"
                   >
-                    {descriptionMap.has(value) ?  descriptionMap.get(value) : descriptionMap2021.has(value) ? descriptionMap2021.get(value) : value}
+                    {descriptionMap.has(value)
+                      ? descriptionMap.get(value)
+                      : descriptionMap2021.has(value)
+                      ? descriptionMap2021.get(value)
+                      : value}
                   </Typography>
                 </div>
                 <div>
@@ -73,14 +79,15 @@ const HUD = ({ rawData }) => {
                     display="inline"
                     variant="body2"
                   >
-                    {priorityMap.get(value) ?? "Unknown Priority (category post-2021)"}
+                    {priorityMap.get(value) ??
+                      "Unknown Priority (category post-2021)"}
                   </Typography>
                 </div>
-              </>
+              </div>
             );
           } else {
             return (
-              <>
+              <div key={i}>
                 <div>
                   <Typography
                     key={`${key}_${i}`}
@@ -99,7 +106,7 @@ const HUD = ({ rawData }) => {
                     {value}
                   </Typography>
                 </div>
-              </>
+              </div>
             );
           }
         })}
@@ -138,12 +145,14 @@ const HUD = ({ rawData }) => {
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
               {rawData.address.substring(rawData.address.length - 6)}
             </Typography>
-            {status && <Typography
-              variant="h6"
-              sx={{ fontWeight: 700, fontVariant: "small-caps" }}
-            >
-              Highest Priority: {status}
-            </Typography>}
+            {status && (
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, fontVariant: "small-caps" }}
+              >
+                Highest Priority: {status}
+              </Typography>
+            )}
             <Typography
               variant="h6"
               sx={{ fontWeight: 700, fontVariant: "small-caps" }}

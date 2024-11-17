@@ -9,28 +9,37 @@ import { LayerSpecification } from "maplibre-gl";
 import { Point } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "../styles/Home.module.css";
-import maptiler3dGl from "../assets/dark-matter-style.json";
+import maptiler3dGl from "../assets/positron-style.json";
 import complaintCategory from "../assets/dobcomplaints_complaint_category.json";
 import dobComplaints2021 from "../assets/complaint_category.json";
+import { activeComplaints } from "../assets/active_complaints";
 import HUD from "./HUD";
 
+import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import Collapse from "@mui/material/Collapse";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import Paper from "@mui/material/Paper";
+import IconButton, { IconButtonProps } from "@mui/material/IconButton";
+
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
 import GitHubIcon from "@mui/icons-material/GitHub";
 
+const filteredComplaints = new Set(activeComplaints);
+
 const descriptionMap2021 = new Map(
-  dobComplaints2021.map((d) => [
-    d["COMPLAINT CATEGORY"],
-    d["COMPLAINT CATEGORY DESCRIPTION"],
-  ])
+  dobComplaints2021
+    .filter((d) => filteredComplaints.has(d["COMPLAINT CATEGORY"]))
+    .map((d) => [d["COMPLAINT CATEGORY"], d["COMPLAINT CATEGORY DESCRIPTION"]])
 );
 
 const complaintLayersById = [
-  ...dobComplaints2021.map((d) => `nyc-${d["COMPLAINT CATEGORY"]}`),
+  ...dobComplaints2021
+    .map((d) => `nyc-${d["COMPLAINT CATEGORY"]}`)
+    .filter((d) => filteredComplaints.has(d.split("-")[1])),
 ];
 
 const priorityMap = new Map(complaintCategory.map((d) => [d.CODE, d.PRIORITY]));
@@ -40,15 +49,46 @@ interface LayerVisibility {
   visible: boolean;
 }
 
+const circleColors = [
+  "match",
+  ["get", "highestPriority"],
+  "A",
+  "#e31a1c",
+  "B",
+  "#fd8d3c",
+  "C",
+  "#fecc5c",
+  "D",
+  "#ffffb2",
+  "#f2f2f2",
+];
+
+const circleRadius = ["interpolate", ["linear"], ["zoom"], 10, 2, 15, 5];
+
 // helper function to create complaintLayers
-const getComplaintLayer = (layerId: string) => {
-  const complaintId = layerId.split("-")[1];
-  const highestPriority = priorityMap.get(layerId) ?? "E";
+const getDefaultLayer = (layerId: string) => {
   return {
     id: `${layerId}`,
     type: "circle",
     source: "dobTiles",
-    "source-layer": "nycdob_rollup",
+    "source-layer": "20241116_nycdob_rollup",
+    layout: { visibility: "visible" },
+    paint: {
+      "circle-color": circleColors,
+      "circle-opacity": 0.9,
+      "circle-radius": circleRadius,
+    },
+  } as CircleLayerSpecification;
+};
+
+// helper function to create complaintLayers
+const getComplaintLayer = (layerId: string) => {
+  const complaintId = layerId.split("-")[1];
+  return {
+    id: `${layerId}`,
+    type: "circle",
+    source: "dobTiles",
+    "source-layer": "20241116_nycdob_rollup",
     filter: [
       "all",
       [
@@ -57,48 +97,40 @@ const getComplaintLayer = (layerId: string) => {
         ["get", "complaintCategories"],
       ] as ExpressionSpecification,
     ] as ExpressionFilterSpecification,
-    layout: { visibility: "none" },
+    layout: { visibility: "visible" },
     paint: {
-      "circle-color": [
-        "match",
-        highestPriority,
-        "A",
-        "#6e40aa",
-        "B",
-        "#417de0",
-        "C",
-        "#1ac7c2",
-        "D",
-        "#40f373",
-        "#aff05b",
-      ],
+      "circle-color": circleColors,
       "circle-opacity": 0.9,
-      "circle-radius": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        10,
-        1.75,
-        11,
-        2.5,
-        11.5,
-        4,
-        12,
-        3,
-        13,
-        3,
-        20,
-        10,
-      ],
+      "circle-radius": circleRadius,
     },
   } as CircleLayerSpecification;
 };
+
+interface ExpandMoreProps extends IconButtonProps {
+  expand: boolean;
+}
+
+const ExpandMore = styled((props: ExpandMoreProps) => {
+  const { expand, ...other } = props;
+  return <IconButton {...other} />;
+})(({ theme, expand }) => ({
+  transform: !expand ? "rotate(0deg)" : "rotate(180deg)",
+  marginLeft: "auto",
+  transition: theme.transitions.create("transform", {
+    duration: theme.transitions.duration.shortest,
+  }),
+}));
 
 const LayersVisibilityController = (props: {
   layers: LayerVisibility[];
   onChange: (layers: LayerVisibility[]) => void;
 }) => {
+  const [expanded, setExpanded] = useState(false);
   const { layers, onChange } = props;
+
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
 
   const toggleLayer = (event: React.ChangeEvent<HTMLInputElement>) => {
     const layerId = event.target.getAttribute("data-layer-id");
@@ -116,33 +148,51 @@ const LayersVisibilityController = (props: {
         bottom: 108,
       }}
     >
-      <Paper sx={{ paddingY: 2, paddingLeft: 2, opacity: 0.8 }}>
-        <Typography variant="h7" sx={{ fontVariant: "small-caps" }}>
-          Layers
-        </Typography>
-        <Box sx={{ maxHeight: "20vh", overflowY: "auto", maxWidth: "300px" }}>
-          <List>
-            {props.layers.map(({ id, visible }) => {
-              const complaintId = id.split("-")[1];
-              const description =
-                descriptionMap2021.get(complaintId) ?? "All Complaint Types";
-              return (
-                <li key={id}>
-                  <ListItem style={{ paddingLeft: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={visible}
-                      onChange={toggleLayer}
-                      data-layer-id={id}
-                    />
-                    {description}
-                  </ListItem>
-                </li>
-              );
-            })}
-          </List>
-        </Box>
-      </Paper>
+      <Card
+        sx={{
+          padding: 1,
+          backgroundColor: "rgba(255, 255, 255, 0.8)",
+          borderRadius: "8px",
+        }}
+      >
+        <div>
+          <Typography variant="h7" sx={{ fontVariant: "small-caps" }}>
+            Layers
+          </Typography>
+          <ExpandMore
+            expand={expanded}
+            onClick={handleExpandClick}
+            aria-expanded={expanded}
+            aria-label="show more"
+          >
+            <ExpandMoreIcon />
+          </ExpandMore>
+        </div>
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <Box sx={{ maxHeight: "20vh", overflowY: "auto", maxWidth: "300px" }}>
+            <List>
+              {props.layers.map(({ id, visible }) => {
+                const complaintId = id.split("-")[1];
+                const description =
+                  descriptionMap2021.get(complaintId) ?? "All Complaint Types";
+                return (
+                  <li key={id}>
+                    <ListItem style={{ paddingLeft: 8 }}>
+                      <input
+                        type="checkbox"
+                        checked={visible}
+                        onChange={toggleLayer}
+                        data-layer-id={id}
+                      />
+                      {description}
+                    </ListItem>
+                  </li>
+                );
+              })}
+            </List>
+          </Box>
+        </Collapse>
+      </Card>
     </Box>
   );
 };
@@ -153,8 +203,42 @@ function MaplibreMap() {
   let [layersVisibility, setLayersVisibility] = useState<LayerVisibility[]>([]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const mapFile = new PMTiles("/nyc-public-complaints/new-york.pmtiles");
-  const dobFile = new PMTiles("/nyc-public-complaints/nyc-rollup.pmtiles");
+  const mapFile = new PMTiles("/nyc-building-complaints/new-york.pmtiles");
+  const dobFile = new PMTiles("/nyc-building-complaints/nyc-buildings.pmtiles");
+
+  const handleSpaceZoom = (event) => {
+    if (event.key === " ") {
+      const map = mapRef.current;
+      if (map) {
+        map.flyTo({
+          // These options control the ending camera position: centered at
+          // the target, at zoom level 9, and north up.
+          zoom: 10,
+
+          // These options control the flight curve, making it move
+          // slowly and zoom out almost completely before starting
+          // to pan.
+          speed: 0.5, // make the flying slow
+          curve: 1, // change the speed at which it zooms out
+
+          // This can be any easing function: it takes a number between
+          // 0 and 1 and returns another number between 0 and 1.
+          easing: function (t) {
+            return t;
+          },
+
+          // this animation is considered essential with respect to prefers-reduced-motion
+          essential: true,
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleSpaceZoom);
+
+    return () => document.removeEventListener("keydown", handleSpaceZoom);
+  }, []);
 
   const handleLayersVisibilityChange = (
     layersVisibility: LayerVisibility[]
@@ -201,7 +285,7 @@ function MaplibreMap() {
           },
         },
         layers: maptiler3dGl.layers as LayerSpecification[],
-        glyphs: "/nyc-public-complaints/{fontstack}/{range}.pbf",
+        glyphs: "/nyc-building-complaints/{fontstack}/{range}.pbf",
       },
     });
     mapRef.current = map;
@@ -219,9 +303,11 @@ function MaplibreMap() {
       map.resize();
 
       const initialLayerVisibility = [{ id: "nyc-dob", visible: true }];
+      const defaultLayer = getDefaultLayer("nyc-dob");
+      map.addLayer(defaultLayer, "highway_name_motorway");
       complaintLayersById.forEach((id) => {
         const layer = getComplaintLayer(id);
-        map.addLayer(layer, "highway_name_other");
+        map.addLayer(layer, "highway_name_motorway");
         initialLayerVisibility.push({
           id: layer.id,
           visible: false,
@@ -270,13 +356,13 @@ function MaplibreMap() {
       <Box sx={{ position: "fixed", left: 8, top: 8 }}>
         <Typography
           variant="h4"
-          sx={{ color: "white", fontVariant: "small-caps" }}
+          sx={{ color: "black", fontVariant: "small-caps" }}
         >
           NYC Department of Buildings
         </Typography>
         <Typography
           variant="h5"
-          sx={{ color: "white", fontVariant: "small-caps" }}
+          sx={{ color: "black", fontVariant: "small-caps" }}
         >
           Active Complaints
         </Typography>
@@ -289,7 +375,7 @@ function MaplibreMap() {
         <Link href="https://github.com/m-clare/nyc-dob-complaints-map">
           <GitHubIcon
             sx={{
-              color: "white",
+              color: "grey",
               display: "inline-block",
               verticalAlign: "middle",
             }}
